@@ -41,5 +41,39 @@ Set-WebBinding -Name $siteName -Port 443 -PropertyName "CertificateHash" -Value 
 
 Write-Host "SSL certificate updated for $siteName"
 
+# Set variables
+$siteName = "YourSiteName"        # Replace with your actual site name
+$certThumbprint = "YourCertThumbprint"  # Replace with the thumbprint of your new SSL certificate
+$ipAddress = "YourIPAddress"      # Replace with the desired IP address
 
+# Get the site by name
+$site = Get-WebSite -Name $siteName
+
+# Get the existing binding
+$existingBinding = Get-WebBinding -Name $siteName -Port 443
+
+# Remove the existing binding
+Remove-WebBinding -Name $siteName -Port 443 -Protocol "https"
+
+# Create a new binding with the updated certificate and specified IP address
+New-WebBinding -Name $siteName -IPAddress $ipAddress -Port 443 -Protocol "https" -HostHeader $existingBinding.HostHeader -SslFlags 1
+
+# Set the SSL certificate for the new binding
+Set-WebBinding -Name $siteName -IPAddress $ipAddress -Port 443 -Protocol "https" -PropertyName "CertificateHash" -Value $certThumbprint
+
+Write-Host "SSL certificate updated for $siteName with IP address $ipAddress"
+
+# Set variables
+$siteName = "YourSiteName"  # Replace with your actual site name
+
+# Get the site by name
+$site = Get-WebSite -Name $siteName
+
+# Get the existing binding
+$existingBinding = Get-WebBinding -Name $siteName -Port 443
+
+# Extract IP address from BindingInformation
+$ipAddress = $existingBinding.BindingInformation -split ":")[0]
+
+Write-Host "IP address for $siteName binding: $ipAddress"
 
