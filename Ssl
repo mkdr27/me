@@ -1,0 +1,20 @@
+# Set variables
+$siteName = "YourSiteName"  # Replace with your actual site name
+$certThumbprint = "YourCertThumbprint"  # Replace with the thumbprint of your new SSL certificate
+
+# Get the site by name
+$site = Get-WebSite -Name $siteName
+
+# Get the certificate by thumbprint
+$cert = Get-Item Cert:\LocalMachine\My\$certThumbprint
+
+# Get the existing binding
+$binding = $site.Bindings | Where-Object { $_.Protocol -eq "https" }
+
+# Update the binding with the new certificate
+$binding.AddSslCertificate($cert.GetCertHash(), "My")
+
+# Commit the changes
+$site | Set-WebSite -Force
+
+Write-Host "SSL certificate updated for $siteName"
