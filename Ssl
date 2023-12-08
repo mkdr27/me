@@ -18,3 +18,28 @@ $binding.AddSslCertificate($cert.GetCertHash(), "My")
 $site | Set-WebSite -Force
 
 Write-Host "SSL certificate updated for $siteName"
+
+
+# Set variables
+$siteName = "YourSiteName"  # Replace with your actual site name
+$certThumbprint = "YourCertThumbprint"  # Replace with the thumbprint of your new SSL certificate
+
+# Get the site by name
+$site = Get-WebSite -Name $siteName
+
+# Get the existing binding
+$existingBinding = Get-WebBinding -Name $siteName -Port 443
+
+# Remove the existing binding
+Remove-WebBinding -Name $siteName -Port 443 -Protocol "https"
+
+# Create a new binding with the updated certificate
+New-WebBinding -Name $siteName -Port 443 -Protocol "https" -HostHeader $existingBinding.HostHeader -SslFlags 1  # Use SslFlags 1 for SNI SSL
+
+# Set the SSL certificate for the new binding
+Set-WebBinding -Name $siteName -Port 443 -PropertyName "CertificateHash" -Value $certThumbprint
+
+Write-Host "SSL certificate updated for $siteName"
+
+
+
