@@ -76,4 +76,14 @@ $existingBinding = Get-WebBinding -Name $siteName -Port 443
 $ipAddress = $existingBinding.BindingInformation -split ":")[0]
 
 Write-Host "IP address for $siteName binding: $ipAddress"
+# Set variables
+$siteName = "YourSiteName"  # Replace with your actual site name
+$port = 443  # Replace with the port of your HTTPS binding
 
+# Get the existing binding
+$existingBinding = Get-WebBinding -Name $siteName -Port $port
+
+# Get the certificate thumbprint from the binding
+$thumbprint = (Get-Item -Path "Cert:\LocalMachine\My\$($existingBinding.CertificateHash)").Thumbprint
+
+Write-Host "Thumbprint of the existing certificate for $siteName: $thumbprint"
