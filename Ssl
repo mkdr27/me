@@ -157,6 +157,14 @@ if ($serviceStatus.TcpTestSucceeded) {
     Write-Host "Web service at $siteUrl is not running or not reachable."
 }
 
+# Set variables
+$thumbprint = "YourExistingThumbprint"  # Replace with the thumbprint of your existing SSL certificate
+$backupPath = "C:\Path\To\Backup\CertificateBackup.pfx"  # Replace with the path where you want to save the backup
+
+# Export the certificate without a password
+Export-PfxCertificate -Cert Cert:\LocalMachine\My\$thumbprint -FilePath $backupPath -NoExportPrivateKey
+
+Write-Host "Backup of the certificate with thumbprint $thumbprint (without password) is created at $backupPath"
 # Check if the SSL certificate is updated
 try {
     $response = Invoke-WebRequest -Uri $siteUrl -UseBasicParsing
