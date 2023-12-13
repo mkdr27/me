@@ -87,3 +87,86 @@ $existingBinding = Get-WebBinding -Name $siteName -Port $port
 $thumbprint = (Get-Item -Path "Cert:\LocalMachine\My\$($existingBinding.CertificateHash)").Thumbprint
 
 Write-Host "Thumbprint of the existing certificate for $siteName: $thumbprint"
+
+# Set variables
+$siteName = "YourSiteName"  # Replace with your actual site name
+$port = 443  # Replace with the port of your HTTPS binding
+
+# Get the existing binding
+$existingBinding = Get-WebBinding -Name $siteName -Port $port
+
+# Get the certificate thumbprint from the binding
+$thumbprint = $existingBinding.CertificateHash
+$cert = Get-Item -Path "Cert:\LocalMachine\My\$thumbprint"
+
+# Get the expiration date of the certificate
+$expirationDate = $cert.NotAfter
+
+Write-Host "Expiration date of the certificate for $siteName: $expirationDate"
+
+# Set variables
+$certificatePath = "C:\Path\To\Your\Certificate.pfx"  # Replace with the path to your PFX certificate file
+$certificatePassword = "YourCertificatePassword"  # Replace with the password for your PFX certificate
+
+# Import the certificate
+$cert = Import-PfxCertificate -FilePath $certificatePath -CertStoreLocation Cert:\LocalMachine\My -Password (ConvertTo-SecureString -String $certificatePassword -AsPlainText -Force)
+
+# Get the thumbprint of the imported certificate
+$thumbprint = $cert.Thumbprint
+
+Write-Host "Thumbprint of the imported certificate: $thumbprint"
+
+# Set variables
+$certificatePath = "C:\Path\To\Your\Certificate.pfx"  # Replace with the path to your PFX certificate file
+$certificatePassword = "YourCertificatePassword"  # Replace with the password for your PFX certificate
+
+# Import the certificate
+$cert = Import-PfxCertificate -FilePath $certificatePath -CertStoreLocation Cert:\LocalMachine\My -Password (ConvertTo-SecureString -String $certificatePassword -AsPlainText -Force)
+
+# Get the thumbprint of the imported certificate
+$thumbprint = $cert.Thumbprint
+
+# Set variables
+$siteName = "YourSiteName"  # Replace with your actual site name
+$port = 443  # Replace with the port of your HTTPS binding
+$expectedThumbprint = "YourExpectedThumbprint"  # Replace with the expected thumbprint of your new SSL certificate
+
+# Get the existing binding
+$existingBinding = Get-WebBinding -Name $siteName -Port $port
+
+# Get the certificate thumbprint from the binding
+$thumbprint = $existingBinding.CertificateHash
+
+# Check if the thumbprint matches the expected value
+if ($thumbprint -eq $expectedThumbprint) {
+    Write-Host "The site $siteName is updated with the latest SSL certificate."
+} else {
+    Write-Host "The site $siteName does not have the expected SSL certificate. Current thumbprint: $thumbprint"
+}
+Write-Host "Thumbprint of the imported certificate: $thumbprint"
+
+# Set variables
+$siteUrl = "https://yourwebsite.com"  # Replace with the URL of your web service
+$expectedThumbprint = "YourExpectedThumbprint"  # Replace with the expected thumbprint of your new SSL certificate
+
+# Check if the service is running
+$serviceStatus = Test-NetConnection -ComputerName $siteUrl -Port 443
+if ($serviceStatus.TcpTestSucceeded) {
+    Write-Host "Web service at $siteUrl is running."
+} else {
+    Write-Host "Web service at $siteUrl is not running or not reachable."
+}
+
+# Check if the SSL certificate is updated
+try {
+    $response = Invoke-WebRequest -Uri $siteUrl -UseBasicParsing
+    $thumbprint = $response.Headers['X-SSL-Cert']
+    
+    if ($thumbprint -eq $expectedThumbprint) {
+        Write-Host "The SSL certificate for $siteUrl is updated with the latest certificate."
+    } else {
+        Write-Host "The SSL certificate for $siteUrl does not match the expected thumbprint. Current thumbprint: $thumbprint"
+    }
+} catch {
+    Write-Host "Error connecting to $siteUrl. $_"
+}
