@@ -178,3 +178,23 @@ try {
 } catch {
     Write-Host "Error connecting to $siteUrl. $_"
 }
+# Set variables
+$thumbprint = "YourExistingThumbprint"  # Replace with the thumbprint of your existing SSL certificate
+$backupPath = "C:\Path\To\Backup\CertificateBackup.pfx"  # Replace with the path where you want to save the backup
+
+# Export the certificate without a password
+Export-PfxCertificate -Cert Cert:\LocalMachine\My\$thumbprint -FilePath $backupPath -NoExportPrivateKey
+
+Write-Host "Backup of the certificate with thumbprint $thumbprint (without password) is created at $backupPath"
+
+
+
+# Set variables
+$thumbprint = "YourExistingThumbprint"  # Replace with the thumbprint of your existing SSL certificate
+$backupPath = "C:\Path\To\Backup\CertificateBackup.pfx"  # Replace with the path where you want to save the backup
+$backupPassword = "YourBackupPassword"  # Replace with a strong password for the backup
+
+# Export the certificate
+Export-PfxCertificate -Cert Cert:\LocalMachine\My\$thumbprint -FilePath $backupPath -Password (ConvertTo-SecureString -String $backupPassword -AsPlainText -Force)
+
+Write-Host "Backup of the certificate with thumbprint $thumbprint is created at $backupPath"
