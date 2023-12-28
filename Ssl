@@ -198,3 +198,35 @@ $backupPassword = "YourBackupPassword"  # Replace with a strong password for the
 Export-PfxCertificate -Cert Cert:\LocalMachine\My\$thumbprint -FilePath $backupPath -Password (ConvertTo-SecureString -String $backupPassword -AsPlainText -Force)
 
 Write-Host "Backup of the certificate with thumbprint $thumbprint is created at $backupPath"
+
+function Restart-IISWithCheck {
+    # Restart IIS
+    Restart-Service -Name "W3SVC" -Force
+
+    # Check if IIS is running after restart
+    $iisStatus = Get-Service -Name "W3SVC" | Select-Object -ExpandProperty Status
+
+    if ($iisStatus -eq 'Running') {
+        Write-Host "IIS restarted successfully."
+    } else {
+        # If IIS is not running, try starting it
+        Start-Service -Name "W3SVC"
+
+        # Check again if IIS is running
+        $iisStatusAfterStart = Get-Service -Name "W3SVC" | Select-Object -ExpandProperty Status
+
+        if ($iisStatusAfterStart -eq 'Running') {
+            Write-Host "IIS started successfully after restart attempt."
+        } else {
+            # If IIS is still not running, throw an error
+            throw "Failed to restart or start IIS. Check IIS configuration and try again."
+        }
+    }
+}
+
+# Example usage
+try {
+    Restart-IISWithCheck
+} catch {
+    Write-Host "Error: $_"
+}
