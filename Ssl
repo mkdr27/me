@@ -2,6 +2,14 @@
 $siteName = "YourSiteName"  # Replace with your actual site name
 $certThumbprint = "YourCertThumbprint"  # Replace with the thumbprint of your new SSL certificate
 
+# Set the path to your .cer file
+$cerFilePath = "C:\Path\To\Your\Certificate.cer"  # Replace with the actual path to your .cer file
+
+# Get the thumbprint of the .cer file
+$thumbprint = (Get-FileHash -Path $cerFilePath -Algorithm SHA1).Hash
+
+Write-Host "Thumbprint of the .cer file: $thumbprint"
+
 # Get the site by name
 $site = Get-WebSite -Name $siteName
 
