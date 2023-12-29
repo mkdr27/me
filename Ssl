@@ -238,3 +238,22 @@ try {
 } catch {
     Write-Host "Error: $_"
 }
+
+# URL to the HTTPS endpoint
+$url = "https://example.com"
+
+try {
+    # Send a request and retrieve the SSL certificate
+    $response = Invoke-WebRequest -Uri $url -Method Head -UseDefaultCredentials
+
+    # Extract the SSL thumbprint from the response headers
+    $thumbprint = $response.Headers['X-SSL-Cert']
+
+    if ($thumbprint) {
+        Write-Host "SSL thumbprint: $thumbprint"
+    } else {
+        Write-Host "SSL thumbprint not found in response headers."
+    }
+} catch {
+    Write-Host "Error: $_"
+}
