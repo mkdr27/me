@@ -292,3 +292,26 @@ function Check-SSLCertificateExpiration {
 
 # Example Usage:
 # Check-SSLCertificateExpiration -siteName "YourSiteName" -port 443
+
+function Check-HTTPStatus {
+    param (
+        [string]$url
+    )
+
+    try {
+        # Send a request and retrieve the HTTP response
+        $response = Invoke-WebRequest -Uri $url -Method Head
+
+        # Check if the HTTP status code is 200 (OK)
+        if ($response.StatusCode -eq 200) {
+            Write-Host "HTTP Status: 200 (OK)"
+        } else {
+            Write-Host "HTTP Status: $($response.StatusCode) $($response.StatusDescription)"
+        }
+    } catch {
+        Write-Host "Error: $_"
+    }
+}
+
+# Example Usage:
+# Check-HTTPStatus -url "https://example.com"
