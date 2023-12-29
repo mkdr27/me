@@ -257,3 +257,38 @@ try {
 } catch {
     Write-Host "Error: $_"
 }
+
+function Check-SSLCertificateExpiration {
+    param (
+        [string]$siteName,
+        [int]$port
+    )
+
+    # Get the existing binding
+    $existingBinding = Get-WebBinding -Name $siteName -Port $port
+
+    if ($existingBinding -eq $null) {
+        Write-Host "Site binding not found."
+        return
+    }
+
+    # Get the certificate thumbprint from the binding
+    $thumbprint = $existingBinding.CertificateHash
+    $cert = Get-Item -Path "Cert:\LocalMachine\My\$thumbprint"
+
+    # Calculate the number of days until the certificate expires
+    $daysUntilExpiration = ($cert.NotAfter - (Get-Date)).Days
+
+    if ($daysUntilExpiration -lt 60) {
+        # Notify user (replace with your notification mechanism)
+        Write-Host "SSL certificate for $siteName on port $port is going to expire in $daysUntilExpiration days. Consider renewing or updating the certificate."
+
+        # You can include additional notification methods here (e.g., sending an email)
+        # Example: Send-MailMessage -To "your@email.com" -From "script@server.com" -Subject "SSL Certificate Expiration Alert" -Body "SSL certificate for $siteName on port $port is going to expire in $daysUntilExpiration days." -SmtpServer "your-smtp-server.com"
+    } else {
+        Write-Host "SSL certificate for $siteName on port $port is not expiring soon."
+    }
+}
+
+# Example Usage:
+# Check-SSLCertificateExpiration -siteName "YourSiteName" -port 443
