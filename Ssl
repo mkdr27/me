@@ -315,3 +315,35 @@ function Check-HTTPStatus {
 
 # Example Usage:
 # Check-HTTPStatus -url "https://example.com"
+
+function Check-HTTPStatusAlternative {
+    param (
+        [string]$url
+    )
+
+    try {
+        # Create a request object
+        $request = [System.Net.HttpWebRequest]::Create($url)
+        $request.Method = "HEAD"
+
+        # Get the response
+        $response = $request.GetResponse()
+
+        # Check if the HTTP status code is 200 (OK)
+        if ($response.StatusCode -eq [System.Net.HttpStatusCode]::OK) {
+            Write-Host "HTTP Status: 200 (OK)"
+        } else {
+            Write-Host "HTTP Status: $($response.StatusCode) $($response.StatusDescription)"
+        }
+    } catch {
+        Write-Host "Error: $_"
+    } finally {
+        # Close the response
+        if ($response -ne $null) {
+            $response.Close()
+        }
+    }
+}
+
+# Example Usage:
+# Check-HTTPStatusAlternative -url "https://example.com"
