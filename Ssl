@@ -347,3 +347,52 @@ function Check-HTTPStatusAlternative {
 
 # Example Usage:
 # Check-HTTPStatusAlternative -url "https://example.com"
+# Example of remote execution using PowerShell Remoting
+$remoteServer = "YourServerNameOrIPAddress"
+
+# Script content
+$scriptContent = @"
+# Your SSL renewal script content here
+"@
+
+# Invoke the script remotely
+Invoke-Command -ComputerName $remoteServer -ScriptBlock {
+    param($scriptContent)
+    Invoke-Expression $scriptContent
+} -ArgumentList $scriptContent
+
+[
+    {"ServerName": "Server1", "Port": 443, "CertificatePath": "C:\Path\To\Cert1.pfx"},
+    {"ServerName": "Server2", "Port": 8443, "CertificatePath": "C:\Path\To\Cert2.pfx"}
+    // Add more server entries as needed
+]
+
+# Configuration for the website and email
+$websiteUrl = "http://your-iis-site.com"
+$emailFrom = "your-email@your-domain.com"
+$emailTo = "recipient@example.com"
+$emailSubject = "IIS Site Screenshot"
+$emailBody = "Please find the attached screenshot of the IIS site."
+
+# Specify the path to save the screenshot
+$screenshotPath = "C:\Path\To\screenshot.png"
+
+# Create Internet Explorer COM object
+$ie = New-Object -ComObject InternetExplorer.Application
+
+# Navigate to the website
+$ie.Navigate($websiteUrl)
+
+# Wait for the page to load (adjust sleep time as needed)
+Start-Sleep -Seconds 5
+
+# Capture screenshot
+$ie.Document.body.createControlRange() | foreach-object { $_.execCommand("Copy", $false, $null) }
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.Clipboard]::GetImage().Save($screenshotPath)
+
+# Quit Internet Explorer
+$ie.Quit()
+
+# Send email with the screenshot as an attachment
+Send-MailMessage -From $emailFrom -To $emailTo -Subject $emailSubject -Body $emailBody -Attachments $screenshotPath -SmtpServer "smtp.your-email-provider.com"
