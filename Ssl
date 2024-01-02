@@ -367,6 +367,18 @@ Invoke-Command -ComputerName $remoteServer -ScriptBlock {
     // Add more server entries as needed
 ]
 
+# Read server information from JSON
+$servers = Get-Content -Raw -Path "C:\Path\To\servers.json" | ConvertFrom-Json
+
+# Iterate through servers
+foreach ($server in $servers) {
+    $siteName = $server.ServerName
+    $port = $server.Port
+    $certPath = $server.CertificatePath
+
+    # Check SSL expiration and renew if needed
+    Check-And-Renew-SSLCertificate -siteName $siteName -port $port -certPath $certPath
+}
 # Configuration for the website and email
 $websiteUrl = "http://your-iis-site.com"
 $emailFrom = "your-email@your-domain.com"
