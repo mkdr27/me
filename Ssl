@@ -1,3 +1,63 @@
+param (
+    [string]$serverName,
+    [string]$siteName,
+    [int]$port
+)
+
+# Set the log directory and log file path
+$logDirectory = "C:\Path\To\Log\Directory"
+$logFileName = "script_log.txt"
+$logFilePath = Join-Path -Path $logDirectory -ChildPath $logFileName
+
+# Function to write log entries
+function Write-Log {
+    param (
+        [string]$logEntry
+    )
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $logEntryWithTimestamp = "$timestamp - $logEntry"
+    Add-Content -Path $logFilePath -Value $logEntryWithTimestamp
+}
+
+# Check if the server is accessible
+$pingResult = Test-Connection -ComputerName $serverName -Count 2 -Quiet
+
+if (-not $pingResult) {
+    $errorMessage = "Server '$serverName' is not accessible. Exiting script."
+    Write-Log -logEntry $errorMessage
+    Write-Host $errorMessage
+    exit
+}
+
+# Check if the IIS site exists
+$iisSite = Get-Website -Name $siteName -ErrorAction SilentlyContinue
+
+if ($iisSite -eq $null) {
+    $errorMessage = "IIS site '$siteName' not found on server '$serverName'. Exiting script."
+    Write-Log -logEntry $errorMessage
+    Write-Host $errorMessage
+    exit
+}
+
+# Get the existing binding
+$existingBinding = Get-WebBinding -Name $siteName -Port $port
+
+if ($existingBinding -eq $null) {
+    $errorMessage = "Binding not available for site '$siteName' on port $port. Exiting script."
+    Write-Log -logEntry $errorMessage
+    Write-Host $errorMessage
+    exit
+}
+
+# Rest of your script logic
+# ...
+
+# Log success message
+$successMessage = "Binding information retrieved successfully for site '$siteName' on server '$serverName' and port $port."
+Write-Log -logEntry $successMessage
+Write-Host $successMessage
+
 # Set variables
 $siteName = "YourSiteName"  # Replace with your actual site name
 $certThumbprint = "YourCertThumbprint"  # Replace with the thumbprint of your new SSL certificate
