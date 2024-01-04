@@ -1,3 +1,36 @@
+function Check-HTTPStatusAlternative {
+    param (
+        [string]$url,
+        [string]$username,
+        [string]$password
+    )
+
+    try {
+        # Create a credential object
+        $credential = New-Object -TypeName PSCredential -ArgumentList $username, (ConvertTo-SecureString -String $password -AsPlainText -Force)
+
+        # Create headers with Authorization Basic
+        $headers = @{
+            'Authorization' = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$($credential.UserName):$($credential.GetNetworkCredential().Password)"))
+        }
+
+        # Send a request and retrieve the HTTP response
+        $response = Invoke-RestMethod -Uri $url -Method Head -Headers $headers
+
+        # Check if the HTTP status code is 200 (OK)
+        if ($response.StatusCode -eq 200) {
+            Write-Host "HTTP Status: 200 (OK)"
+        } else {
+            Write-Host "HTTP Status: $($response.StatusCode) $($response.StatusDescription)"
+        }
+    } catch {
+        Write-Host "Error: $_"
+    }
+}
+
+# Example Usage:
+# Check-HTTPStatusAlternative -url "https://example.com" -username "yourUsername" -password "yourPassword"
+
 param (
     [string]$serverName,
     [string]$siteName,
