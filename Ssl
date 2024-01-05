@@ -1,3 +1,22 @@
+param (
+    [string]$pfxFilePath,
+    [string]$pfxPassword,
+    [string]$certStoreLocation = "LocalMachine",
+    [string]$certStoreName = "My"
+)
+
+# Import the PFX certificate with private key
+$cert = Import-PfxCertificate -FilePath $pfxFilePath -CertStoreLocation $certStoreLocation -CertStoreName $certStoreName -Password (ConvertTo-SecureString -String $pfxPassword -AsPlainText -Force)
+
+# Check if the certificate was imported successfully
+if ($cert -ne $null) {
+    Write-Host "Certificate successfully imported:"
+    Write-Host "Thumbprint: $($cert.Thumbprint)"
+    Write-Host "Subject: $($cert.Subject)"
+} else {
+    Write-Host "Failed to import the certificate."
+}
+
 function Check-HTTPStatusAlternative {
     param (
         [string]$url,
