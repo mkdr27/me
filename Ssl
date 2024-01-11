@@ -1,3 +1,9 @@
+# Function to create log directory if it doesn't exist
+function Initialize-LogDirectory {
+    if (-not (Test-Path -Path $logDirectory -PathType Container)) {
+        New-Item -Path $logDirectory -ItemType Directory | Out-Null
+    }
+}
 param (
     [string]$pfxFilePath,
     [string]$pfxPassword,
