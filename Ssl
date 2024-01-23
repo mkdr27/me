@@ -1,3 +1,16 @@
+# Replace 'C:\Path\To\Your\ReadableCertificate.pfx' with the path to your readable PFX file
+$readablePfxFilePath = 'C:\Path\To\Your\ReadableCertificate.pfx'
+
+# Replace 'C:\Path\To\Your\BinaryCertificate.pfx' with the path where you want to save the binary PFX file
+$binaryPfxFilePath = 'C:\Path\To\Your\BinaryCertificate.pfx'
+
+# Read the readable PFX file and convert to a binary PFX file
+(Get-Content -Path $readablePfxFilePath -Raw) | ForEach-Object {
+    [System.Convert]::FromBase64String($_)
+} | Set-Content -Path $binaryPfxFilePath -Encoding Byte
+
+Write-Host "Binary PFX file saved to: $binaryPfxFilePath"
+
 # Function to create log directory if it doesn't exist
 function Initialize-LogDirectory {
     if (-not (Test-Path -Path $logDirectory -PathType Container)) {
