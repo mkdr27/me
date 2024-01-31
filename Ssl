@@ -1,3 +1,33 @@
+# Example values, replace these with your actual values
+$siteName = ""
+$certPath = "xyz"
+
+# Define an array of variables to validate
+$variablesToValidate = @("siteName", "certPath")
+
+# Validate each variable
+foreach ($variable in $variablesToValidate) {
+    if (-not (Get-Variable -Name $variable -ValueOnly) -or [string]::IsNullOrEmpty((Get-Variable -Name $variable -ValueOnly))) {
+        $errorMessage = "$variable must be provided and cannot be empty. Exiting script."
+        Write-Host $errorMessage
+        # Log error to a log file or console
+        Write-Error $errorMessage
+        exit
+    }
+}
+
+# If validation passes, proceed with other functions
+# Function 1: Validate siteName and certPath
+# Function 2: ...
+
+# Example: Display values if validation passes
+foreach ($variable in $variablesToValidate) {
+    Write-Host "$variable: $(Get-Variable -Name $variable -ValueOnly)"
+}
+
+# Rest of your script logic...
+
+
 # Replace 'C:\Path\To\Your\ReadableCertificate.pfx' with the path to your readable PFX file
 $readablePfxFilePath = 'C:\Path\To\Your\ReadableCertificate.pfx'
 
