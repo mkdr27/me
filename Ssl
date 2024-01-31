@@ -5,15 +5,34 @@ $certPath = "xyz"
 # Define an array of variables to validate
 $variablesToValidate = @("siteName", "certPath")
 
+# Initialize an empty variable to store the error message
+$errorMessages = @()
+
 # Validate each variable
 foreach ($variable in $variablesToValidate) {
-    if (-not (Get-Variable -Name $variable -ValueOnly) -or [string]::IsNullOrEmpty((Get-Variable -Name $variable -ValueOnly))) {
-        $errorMessage = "$variable must be provided and cannot be empty. Exiting script."
+    try {
+        $value = Get-Variable -Name $variable -ValueOnly -ErrorAction Stop
+        if ([string]::IsNullOrEmpty($value)) {
+            $errorMessage = "$variable must be provided and cannot be empty."
+            Write-Host $errorMessage
+            # Add the error message to the variable
+            $errorMessages += $errorMessage
+        }
+    } catch {
+        $errorMessage = "$variable not found or has a null value."
         Write-Host $errorMessage
-        # Log error to a log file or console
-        Write-Error $errorMessage
-        exit
+        # Add the error message to the variable
+        $errorMessages += $errorMessage
     }
+}
+
+# If there are errors, display and log them
+if ($errorMessages.Count -gt 0) {
+    Write-Error "Validation failed. Exiting script."
+    $errorMessages | ForEach-Object {
+        Write-Error $_
+    }
+    exit
 }
 
 # If validation passes, proceed with other functions
@@ -26,6 +45,7 @@ foreach ($variable in $variablesToValidate) {
 }
 
 # Rest of your script logic...
+
 
 
 # Replace 'C:\Path\To\Your\ReadableCertificate.pfx' with the path to your readable PFX file
