@@ -1,3 +1,51 @@
+function Get-UserPasswordInfo {
+    param (
+        [string]$ADAccountName,
+        [string]$ServerName
+    )
+
+    try {
+        # Get AD user information
+        $user = Get-ADUser -Identity $ADAccountName -Server $ServerName -Properties "PasswordNeverExpires", "PasswordExpired", "CannotChangePassword" -ErrorAction Stop
+
+        # Check if password not required
+        if ($user.CannotChangePassword -eq $true) {
+            Write-Host "Password not required for $ADAccountName on $ServerName"
+            return
+        }
+
+        # Check if password never expires
+        if ($user.PasswordNeverExpires -eq $true) {
+            Write-Host "Password never expires for $ADAccountName on $ServerName"
+            return
+        }
+
+        # Check if password is expired
+        if ($user.PasswordExpired -eq $true) {
+            Write-Host "Password expired for $ADAccountName on $ServerName"
+        } else {
+            $expiryDate = $user."msDS-UserPasswordExpiryTimeComputed"
+            $expiryDate = [datetime]::FromFileTime($expiryDate)
+            Write-Host "Password will expire on $expiryDate for $ADAccountName on $ServerName"
+        }
+    } catch {
+        Write-Host "Error retrieving AD user information for $ADAccountName on $ServerName: $_"
+    }
+}
+
+# Read the CSV file
+$csvPath = "C:\Path\To\Your\File.csv"
+$accounts = Import-Csv $csvPath
+
+# Iterate through each entry in the CSV
+foreach ($account in $accounts) {
+    # Call the function
+    Get-UserPasswordInfo -ADAccountName $account.ADAccountName -ServerName $account.ServerName
+}
+
+Write-Host "Script completed."
+
+
 # Read the CSV file
 $csvPath = "C:\Path\To\Your\File.csv"
 $accounts = Import-Csv $csvPath
