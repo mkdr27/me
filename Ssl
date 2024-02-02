@@ -1,3 +1,34 @@
+# Read the CSV file
+$csvPath = "C:\Path\To\Your\File.csv"
+$accounts = Import-Csv $csvPath
+
+# Iterate through each entry in the CSV
+foreach ($account in $accounts) {
+    # Get AD user information
+    $user = Get-ADUser -Identity $account.ADAccountName -Server $account.ServerName -Properties "PasswordNeverExpires", "PasswordExpired", "CannotChangePassword"
+
+    # Check if password not required
+    if ($user.CannotChangePassword -eq $true) {
+        Write-Host "Password not required for $($account.ADUserAccount) on $($account.ServerName)"
+        break
+    }
+
+    # Check if password never expires
+    if ($user.PasswordNeverExpires -eq $true) {
+        Write-Host "Password never expires for $($account.ADUserAccount) on $($account.ServerName)"
+        break
+    }
+
+    # Check if password is expired
+    if ($user.PasswordExpired -eq $true) {
+        Write-Host "Password expired for $($account.ADUserAccount) on $($account.ServerName)"
+    } else {
+        $expiryDate = $user."msDS-UserPasswordExpiryTimeComputed"
+        $expiryDate = [datetime]::FromFileTime($expiryDate)
+        Write-Host "Password will expire on $expiryDate for $($account.ADUserAccount) on $($account.ServerName)"
+    }
+}
+
 When installing SSL certificates via PowerShell scripts, various error scenarios can occur. Here are some common error scenarios to be aware of:
 
 1. **Invalid Certificate Format:**
