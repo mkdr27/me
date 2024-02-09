@@ -1,3 +1,45 @@
+function Send-EmailOnADAccountIssues {
+    param (
+        [string]$Username,
+        [string]$To,
+        [string]$From,
+        [string]$SMTPServer,
+        [string]$SMTPUsername,
+        [string]$SMTPPassword
+    )
+
+    # Initialize an array to collect failure messages
+    $FailureMessages = @()
+
+    # Check if password never expires is false
+    $User = Get-ADUser -Identity $Username -Properties PasswordNeverExpires
+    if (-not $User.PasswordNeverExpires) {
+        $FailureMessages += "Password for user $Username expires and needs attention."
+    }
+
+    # Check if the account is locked out
+    if ($User.LockedOut) {
+        $FailureMessages += "Account $Username is locked out."
+    }
+
+    # Check if password expired is true
+    $PasswordExpired = [bool](Get-ADUserResultantPasswordPolicy $Username).PasswordExpired
+    if ($PasswordExpired) {
+        $FailureMessages += "Password for user $Username has expired."
+    }
+
+    # Send email if there are failure messages
+    if ($FailureMessages.Count -gt 0) {
+        $Subject = "AD Account Issues for $Username"
+        $Body = "The following issues were found with the AD account for $Username:`n`n" + ($FailureMessages -join "`n") 
+
+        Send-MailMessage -From $From -To $To -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SMTPUsername, (ConvertTo-SecureString -String $SMTPPassword -AsPlainText -Force)) -UseSsl
+    }
+}
+
+# Usage example:
+Send-EmailOnADAccountIssues -Username "exampleuser" -To "recipient@example.com" -From "sender@example.com" -SMTPServer "smtp.example.com" -SMTPUsername "your-smtp-username" -SMTPPassword "your-smtp-password"
+
 function Get-UserPasswordInfo {
     param (
         [string]$ADAccountName,
