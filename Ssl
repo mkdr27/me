@@ -1,3 +1,35 @@
+# Define the path to the PKCS#7 certificate
+$pkcs7CertificatePath = "C:\path\to\your\pkcs7_certificate.p7b"
+
+# Import the PKCS#7 certificate
+$pkcs7Certificate = Import-PfxCertificate -FilePath $pkcs7CertificatePath -CertStoreLocation Cert:\CurrentUser\My
+
+# Export the root and intermediate certificates
+$rootCertificate = Get-ChildItem Cert:\LocalMachine\Root | Where-Object {$_.Thumbprint -eq $pkcs7Certificate.Issuer}
+$intermediateCertificate = Get-ChildItem Cert:\LocalMachine\CA | Where-Object {$_.Thumbprint -eq $pkcs7Certificate.Thumbprint}
+
+# Define the path to export the certificates
+$exportPath = "C:\path\to\export\folder"
+
+# Export the root certificate
+$rootCertificatePath = Join-Path -Path $exportPath -ChildPath "root_certificate.cer"
+$rootCertificate | Export-Certificate -FilePath $rootCertificatePath -Type CERT
+
+# Export the intermediate certificate
+$intermediateCertificatePath = Join-Path -Path $exportPath -ChildPath "intermediate_certificate.cer"
+$intermediateCertificate | Export-Certificate -FilePath $intermediateCertificatePath -Type CERT
+
+# Output confirmation messages
+Write-Host "Root certificate exported to: $rootCertificatePath"
+Write-Host "Intermediate certificate exported to: $intermediateCertificatePath"
+
+# Copy the exported certificates to a specified path
+$destinationPath = "C:\path\to\destination\folder"
+Copy-Item -Path $rootCertificatePath -Destination $destinationPath
+Copy-Item -Path $intermediateCertificatePath -Destination $destinationPath
+
+# Output confirmation message
+Write-Host "Certificates copied to: $destinationPath"
 function Send-EmailOnADAccountIssues {
     param (
         [string]$Username,
