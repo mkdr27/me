@@ -4,6 +4,50 @@ $pkcs7CertificatePath = "C:\path\to\your\pkcs7_certificate.p7b"
 # Import the PKCS#7 certificate
 $pkcs7Certificate = Import-PfxCertificate -FilePath $pkcs7CertificatePath -CertStoreLocation Cert:\CurrentUser\My
 
+# Export the root certificate
+$rootCertificate = Get-ChildItem Cert:\LocalMachine\Root | Where-Object {$_.Thumbprint -eq $pkcs7Certificate.Issuer}
+$rootCertificatePath = "C:\path\to\export\root_certificate.cer"
+$rootCertificate | Export-Certificate -FilePath $rootCertificatePath -Type CERT
+
+# Export the intermediate certificate
+$intermediateCertificate = Get-ChildItem Cert:\LocalMachine\CA | Where-Object {$_.Thumbprint -eq $pkcs7Certificate.Thumbprint}
+$intermediateCertificatePath = "C:\path\to\export\intermediate_certificate.cer"
+$intermediateCertificate | Export-Certificate -FilePath $intermediateCertificatePath -Type CERT
+
+# Export the original main certificate
+$mainCertificatePath = "C:\path\to\export\main_certificate.cer"
+$pkcs7Certificate | Export-Certificate -FilePath $mainCertificatePath -Type CERT
+
+# Output confirmation messages
+Write-Host "Root certificate exported to: $rootCertificatePath"
+Write-Host "Intermediate certificate exported to: $intermediateCertificatePath"
+Write-Host "Main certificate exported to: $mainCertificatePath"
+
+# Combine all exported certificates into a single PKCS#12 file
+$certificatesToImport = @($rootCertificatePath, $intermediateCertificatePath, $mainCertificatePath)
+$combinedCertificatePath = "C:\path\to\export\combined_certificates.pfx"
+Get-ChildItem $certificatesToImport | Export-PfxCertificate -FilePath $combinedCertificatePath -Password (ConvertTo-SecureString -String "your_password_here" -AsPlainText -Force)
+
+# Import all exported certificates into ISKeystore.jks file
+$keytoolPath = "C:\path\to\keytool\keytool.exe"
+$keyStorePath = "C:\path\to\ISKeystore.jks"
+$keyStorePassword = "your_keystore_password_here"
+$alias = "your_alias_here"
+
+foreach ($certPath in $certificatesToImport) {
+    & $keytoolPath -importcert -keystore $keyStorePath -storepass $keyStorePassword -file $certPath -alias $alias -noprompt
+}
+
+# Output confirmation message
+Write-Host "Certificates imported into ISKeystore.jks successfully."
+
+
+# Define the path to the PKCS#7 certificate
+$pkcs7CertificatePath = "C:\path\to\your\pkcs7_certificate.p7b"
+
+# Import the PKCS#7 certificate
+$pkcs7Certificate = Import-PfxCertificate -FilePath $pkcs7CertificatePath -CertStoreLocation Cert:\CurrentUser\My
+
 # Export the root and intermediate certificates
 $rootCertificate = Get-ChildItem Cert:\LocalMachine\Root | Where-Object {$_.Thumbprint -eq $pkcs7Certificate.Issuer}
 $intermediateCertificate = Get-ChildItem Cert:\LocalMachine\CA | Where-Object {$_.Thumbprint -eq $pkcs7Certificate.Thumbprint}
