@@ -1,3 +1,30 @@
+# Define the path to the ISKeystore.jks file
+$keyStorePath = "C:\path\to\ISKeystore.jks"
+
+# Check if ISKeystore.jks file exists
+if (Test-Path $keyStorePath) {
+    # Generate a timestamp for renaming
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+
+    # Rename the existing ISKeystore.jks file with a timestamp
+    $backupKeyStorePath = "C:\path\to\ISKeystore_$timestamp.jks"
+    Rename-Item -Path $keyStorePath -NewName $backupKeyStorePath
+
+    Write-Host "Existing ISKeystore.jks file renamed to: $backupKeyStorePath"
+}
+
+# Import all exported certificates into ISKeystore.jks file
+$keytoolPath = "C:\path\to\keytool\keytool.exe"
+$keyStorePassword = "your_keystore_password_here"
+$alias = "your_alias_here"
+
+foreach ($certPath in $certificatesToImport) {
+    & $keytoolPath -importcert -keystore $keyStorePath -storepass $keyStorePassword -file $certPath -alias $alias -noprompt
+}
+
+# Output confirmation message
+Write-Host "Certificates imported into ISKeystore.jks successfully."
+
 # Define the path to the PKCS#7 certificate
 $pkcs7CertificatePath = "C:\path\to\your\pkcs7_certificate.p7b"
 
