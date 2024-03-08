@@ -1,3 +1,44 @@
+function Verify-Certificate {
+    param (
+        [string]$keyStorePath,
+        [string]$mainCertificatePath
+    )
+
+    # Extract thumbprint and expiry date from the exported main certificate
+    $exportedMainCertificate = Get-Item $mainCertificatePath
+    $exportedThumbprint = (Get-ChildItem $mainCertificatePath).Thumbprint
+    $exportedExpiryDate = $exportedMainCertificate.NotAfter
+
+    # Get the main certificate from the keystore
+    $keytoolPath = "C:\path\to\keytool\keytool.exe"
+    $keyStorePassword = "your_keystore_password_here"
+    $alias = "your_alias_here"
+
+    $mainCertificateInfo = & $keytoolPath -list -keystore $keyStorePath -storepass $keyStorePassword -alias $alias -rfc
+    $mainCertificateInfo | Out-String -Stream | ForEach-Object {
+        if ($_ -match "Alias name: $alias") {
+            $thumbprint = ($_ -split ':')[1].Trim()
+        }
+        if ($_ -match "Valid from: (.+) until: (.+)") {
+            $expiryDate = [datetime]::ParseExact(($matches[2]), "MMM dd HH:mm:ss yyyy", $null)
+        }
+    }
+
+    # Compare thumbprints and expiry dates
+    if ($exportedThumbprint -eq $thumbprint) {
+        Write-Host "Thumbprint verification: Match"
+    } else {
+        Write-Host "Thumbprint verification: No match"
+    }
+
+    if ($exportedExpiryDate -eq $expiryDate) {
+        Write-Host "Expiry date verification: Match"
+    } else {
+        Write-Host "Expiry date verification: No match"
+    }
+}
+
+
 # Define the path to the ISKeystore.jks file
 $keyStorePath = "C:\path\to\ISKeystore.jks"
 
