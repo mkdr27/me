@@ -1,3 +1,28 @@
+function Restart-IISAndWait {
+    # Restart IIS
+    Restart-Service -Name "W3SVC" -Force
+
+    # Check the status every 10 seconds until it's started
+    do {
+        # Wait for 10 seconds
+        Start-Sleep -Seconds 10
+
+        # Get the status of IIS
+        $status = Get-Service -Name "W3SVC" | Select-Object -ExpandProperty Status
+
+        # Check if the status is 'Running'
+        if ($status -eq 'Running') {
+            Write-Host "IIS has started successfully."
+            return
+        } else {
+            Write-Host "Waiting for IIS to start..."
+        }
+    } while ($true)  # Infinite loop until IIS is started
+}
+
+# Call the function to restart IIS and wait for it to start
+Restart-IISAndWait
+
 function Verify-Certificate {
     param (
         [string]$keyStorePath,
