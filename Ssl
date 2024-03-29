@@ -1,3 +1,33 @@
+# Path to the input PEM file
+$inputPemFilePath = "path/to/input.pem"
+
+# Read the content of the input PEM file
+$pemContent = Get-Content -Path $inputPemFilePath -Raw
+
+# Split the content into individual certificate sections
+$certSections = $pemContent -split "(?<=-----END CERTIFICATE-----\r?\n)"
+
+# Iterate through each certificate section
+foreach ($certSection in $certSections) {
+    # Check if the section contains a certificate
+    if ($certSection -match "(?ms)(?<=-----BEGIN CERTIFICATE-----\r?\n)(.*?)(?=\r?\n-----END CERTIFICATE-----)") {
+        # Extract the certificate content
+        $certContent = $matches[1]
+
+        # Extract the subject from the certificate
+        if ($certSection -match "Subject=(.*?)\r?\n") {
+            $subject = $matches[1]
+            
+            # Define the output file path based on the subject
+            $outputFilePath = "path/to/output/$subject.pem"
+
+            # Write the certificate content to the output file
+            Set-Content -Path $outputFilePath -Value "Subject=$subject`n$certContent" -Encoding ASCII
+        }
+    }
+}
+
+
 function Restart-IISAndWait {
     # Restart IIS
     Restart-Service -Name "W3SVC" -Force
