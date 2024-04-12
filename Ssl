@@ -1,3 +1,38 @@
+# Import the WebAdministration module
+Import-Module WebAdministration
+
+# Get all IIS sites
+$iisSites = Get-Website
+
+# Iterate through each IIS site
+foreach ($site in $iisSites) {
+    Write-Host "Site Name: $($site.Name)"
+    
+    # Get all bindings for the site
+    $bindings = Get-WebBinding -Name $site.Name
+    
+    # Iterate through each binding
+    foreach ($binding in $bindings) {
+        $certificateThumbprint = $binding.CertificateThumbprint
+        
+        # If a certificate is associated with the binding
+        if ($certificateThumbprint) {
+            # Get the certificate details
+            $certificate = Get-ChildItem -Path "Cert:\LocalMachine\My" | Where-Object {$_.Thumbprint -eq $certificateThumbprint}
+            
+            if ($certificate) {
+                Write-Host "  Binding Information: $($binding.Protocol) $($binding.BindingInformation)"
+                Write-Host "  Certificate Issued To: $($certificate.Subject)"
+            } else {
+                Write-Host "  Certificate not found for Thumbprint: $certificateThumbprint"
+            }
+        } else {
+            Write-Host "  No certificate associated with $($binding.Protocol) $($binding.BindingInformation)"
+        }
+    }
+}
+
+
 # Get all IIS sites
 $iisSites = Get-IISSite
 
