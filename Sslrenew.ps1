@@ -1,3 +1,49 @@
+# Path to the PFX file
+$pfxPath = "C:\path\to\your\certificate.pfx"
+
+# Prompt for the PFX file password
+$pfxPassword = Read-Host -AsSecureString -Prompt "Enter the password for the PFX file"
+
+# Import the PFX file
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+$cert.Import($pfxPath, $pfxPassword, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+
+# Define the number of days for certificate validity check
+$validityDays = 397
+
+# Calculate the certificate validity period
+$validFrom = $cert.NotBefore
+$validTo = $cert.NotAfter
+$validityPeriod = ($validTo - $validFrom).Days
+
+if ($validityPeriod -lt $validityDays) {
+    # Get key algorithm and key size
+    $keyAlgorithm = $cert.PublicKey.Oid.FriendlyName
+    $keySize = $cert.PublicKey.Key.KeySize
+    
+    # Get signature algorithm
+    $signatureAlgorithm = $cert.SignatureAlgorithm.FriendlyName
+    
+    # Get issuer details
+    $issuer = $cert.Issuer
+
+    # Output certificate details
+    [PSCustomObject]@{
+        Thumbprint = $cert.Thumbprint
+        Subject = $cert.Subject
+        ValidFrom = $validFrom
+        ValidTo = $validTo
+        ValidityPeriod = "$validityPeriod days"
+        KeyAlgorithm = $keyAlgorithm
+        KeySize = $keySize
+        SignatureAlgorithm = $signatureAlgorithm
+        Issuer = $issuer
+    }
+} else {
+    Write-Host "The certificate validity period is more than $validityDays days."
+}
+
+
 # Function to update site binding with a new SSL certificate
 function Update-SiteBindingWithCertificate {
     param (
