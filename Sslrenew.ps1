@@ -1,4 +1,69 @@
 param (
+    [string]$endpoint = "your-endpoint.com",
+    [int]$port = 443
+)
+
+function Get-CertificateFromEndpoint {
+    param (
+        [string]$hostname,
+        [int]$port
+    )
+
+    try {
+        $client = New-Object System.Net.Sockets.TcpClient($hostname, $port)
+        $sslStream = New-Object System.Net.Security.SslStream($client.GetStream(), $false, {$true})
+        $sslStream.AuthenticateAsClient($hostname)
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($sslStream.RemoteCertificate)
+        $client.Close()
+        return $cert
+    } catch {
+        Write-Error "Failed to retrieve the certificate from $hostname:$port"
+        return $null
+    }
+}
+
+# Define the number of days for certificate validity check
+$validityDays = 397
+
+# Retrieve the certificate from the endpoint
+$certificate = Get-CertificateFromEndpoint -hostname $endpoint -port $port
+
+if ($certificate) {
+    # Calculate the certificate validity period
+    $validFrom = $certificate.NotBefore
+    $validTo = $certificate.NotAfter
+    $validityPeriod = ($validTo - $validFrom).Days
+
+    if ($validityPeriod -lt $validityDays) {
+        # Get key algorithm and key size
+        $keyAlgorithm = $certificate.PublicKey.Oid.FriendlyName
+        $keySize = $certificate.PublicKey.Key.KeySize
+        
+        # Get signature algorithm
+        $signatureAlgorithm = $certificate.SignatureAlgorithm.FriendlyName
+        
+        # Get issuer details
+        $issuer = $certificate.Issuer
+
+        # Output certificate details
+        [PSCustomObject]@{
+            Thumbprint = $certificate.Thumbprint
+            Subject = $certificate.Subject
+            ValidFrom = $validFrom
+            ValidTo = $validTo
+            ValidityPeriod = "$validityPeriod days"
+            KeyAlgorithm = $keyAlgorithm
+            KeySize = $keySize
+            SignatureAlgorithm = $signatureAlgorithm
+            Issuer = $issuer
+        }
+    } else {
+        Write-Host "The certificate validity period is more than $validityDays days."
+    }
+}
+
+
+param (
     [string]$endpoint = "https://your-endpoint.com"
 )
 
