@@ -14,6 +14,66 @@ $validFrom = $cert.NotBefore
 $validTo = $cert.NotAfter
 $validityPeriod = ($validTo - $validFrom).Days
 
+# Check if the certificate's name contains a wildcard
+$subjectName = $cert.Subject
+$wildcardExists = $subjectName -like "*CN=*.example.com*"
+
+# Get Subject Alternative Names (SANs)
+$sanNames = @()
+foreach ($extension in $cert.Extensions) {
+    if ($extension.Oid.FriendlyName -eq "Subject Alternative Name") {
+        $sanString = $extension.Format($false)
+        $sanNames = $sanString -split "\s*,\s*"
+        break
+    }
+}
+
+if ($validityPeriod -lt $validityDays) {
+    # Get key algorithm and key size
+    $keyAlgorithm = $cert.PublicKey.Oid.FriendlyName
+    $keySize = $cert.PublicKey.Key.KeySize
+    
+    # Get signature algorithm
+    $signatureAlgorithm = $cert.SignatureAlgorithm.FriendlyName
+    
+    # Get issuer details
+    $issuer = $cert.Issuer
+
+    # Output certificate details
+    [PSCustomObject]@{
+        Thumbprint = $cert.Thumbprint
+        Subject = $cert.Subject
+        ValidFrom = $validFrom
+        ValidTo = $validTo
+        ValidityPeriod = "$validityPeriod days"
+        KeyAlgorithm = $keyAlgorithm
+        KeySize = $keySize
+        SignatureAlgorithm = $signatureAlgorithm
+        Issuer = $issuer
+        AlternateDNSNames = $sanNames
+        WildcardExists = $wildcardExists
+    }
+} else {
+    Write-Host "The certificate validity period is more than $validityDays days."
+}
+
+
+param (
+    [string]$cerFilePath = "C:\path\to\your\certificate.cer"
+)
+
+# Load the certificate from the .cer file
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+$cert.Import($cerFilePath)
+
+# Define the number of days for certificate validity check
+$validityDays = 397
+
+# Calculate the certificate validity period
+$validFrom = $cert.NotBefore
+$validTo = $cert.NotAfter
+$validityPeriod = ($validTo - $validFrom).Days
+
 if ($validityPeriod -lt $validityDays) {
     # Get key algorithm and key size
     $keyAlgorithm = $cert.PublicKey.Oid.FriendlyName
