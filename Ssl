@@ -1,3 +1,39 @@
+# Define the certificate format
+$certFormat = "pfx"
+
+# Define the certificate path and password
+$certPath = "C:\path\to\certificate.pfx"
+$password = "your_password"  # Replace with actual password, or use "" for no password
+
+# Check the certificate format and import accordingly
+if ($certFormat -eq "pfx") {
+    try {
+        # Read the PFX file as a byte array
+        $pfxBytes = [System.IO.File]::ReadAllBytes($certPath)
+
+        # Create a new X509Certificate2 object
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+
+        # Import the PFX using the byte array, password, and flags
+        # X509KeyStorageFlags options:
+        # - Exportable allows the private key to be exported
+        # - MachineKeySet stores the key in the machine key store instead of the user key store
+        $cert.Import($pfxBytes, $password, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+
+        # Output certificate details as confirmation
+        Write-Output "Certificate Imported Successfully"
+        Write-Output "Subject: $($cert.Subject)"
+        Write-Output "Issuer: $($cert.Issuer)"
+    }
+    catch {
+        Write-Error "Failed to import PFX file: $_"
+    }
+}
+else {
+    Write-Output "Unsupported certificate format: $certFormat"
+}
+
+
 # Import the WebAdministration module
 Import-Module WebAdministration
 
