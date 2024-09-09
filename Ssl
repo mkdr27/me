@@ -1,3 +1,37 @@
+# Define the certificate path and password
+$certPath = "C:\path\to\certificate.pfx"  # Update with actual path
+$password = "your_password"  # Replace with actual password, or use "" if none
+
+# Define a temporary certificate store location
+$tempCertStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList "TempStore", "CurrentUser"
+
+try {
+    # Open the temporary store in read/write mode
+    $tempCertStore.Open("ReadWrite")
+
+    # Use Import-PfxCertificate to import into the temporary store
+    # Specify the CertStoreLocation parameter to avoid the default LocalMachine\My
+    $cert = Import-PfxCertificate -FilePath $certPath -Password (ConvertTo-SecureString -String $password -Force -AsPlainText) -CertStoreLocation "Cert:\CurrentUser\TempStore"
+
+    # Confirm the certificate was imported
+    if ($cert) {
+        Write-Output "Certificate imported successfully into temporary store."
+        Write-Output "Subject: $($cert.Subject)"
+        Write-Output "Issuer: $($cert.Issuer)"
+        Write-Output "Has Private Key: $($cert.HasPrivateKey)"
+    } else {
+        Write-Output "Failed to import the certificate."
+    }
+}
+catch {
+    # Display detailed error message if import fails
+    Write-Error "Failed to import certificate: $($_.Exception.Message)"
+}
+finally {
+    # Close the store
+    $tempCertStore.Close()
+}
+
 # Define the certificate format
 $certFormat = "pfx"
 
