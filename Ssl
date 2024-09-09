@@ -3,6 +3,48 @@ $certFormat = "pfx"
 
 # Define the certificate path and password
 $certPath = "C:\path\to\certificate.pfx"
+$password = "your_password"  # Replace with actual password or use "" for no password
+
+# Check the certificate format and import accordingly
+if ($certFormat -eq "pfx") {
+    try {
+        # Validate if the file exists
+        if (-not (Test-Path -Path $certPath)) {
+            throw "Certificate file not found at path: $certPath"
+        }
+
+        # Read the PFX file as a byte array
+        $pfxBytes = [System.IO.File]::ReadAllBytes($certPath)
+        if (-not $pfxBytes) {
+            throw "Failed to read PFX file as byte array"
+        }
+
+        # Create a new X509Certificate2 object
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+
+        # Import the PFX using the byte array, password, and flags
+        $cert.Import($pfxBytes, $password, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+
+        # Output certificate details as confirmation
+        Write-Output "Certificate Imported Successfully"
+        Write-Output "Subject: $($cert.Subject)"
+        Write-Output "Issuer: $($cert.Issuer)"
+        Write-Output "Has Private Key: $($cert.HasPrivateKey)"
+    }
+    catch {
+        # Catch and display the exception with detailed information
+        Write-Error "Failed to import PFX file: $($_.Exception.Message)"
+    }
+}
+else {
+    Write-Output "Unsupported certificate format: $certFormat"
+}
+
+# Define the certificate format
+$certFormat = "pfx"
+
+# Define the certificate path and password
+$certPath = "C:\path\to\certificate.pfx"
 $password = "your_password"  # Replace with actual password, or use "" for no password
 
 # Check the certificate format and import accordingly
